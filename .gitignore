@@ -1,0 +1,13 @@
+# Go build
+*.exe
+*.out
+*.test
+*.log
+/vendor/
+/bin/
+
+# IDE
+.idea/
+*.iml
+*.swp
+*.tmp
