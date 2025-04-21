@@ -1,6 +1,7 @@
 package wiki
 
 import (
+	"gowiki/internal/logger"
 	"html/template"
 	"net/http"
 	"regexp"
@@ -29,30 +30,41 @@ func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
 }
 
 func ViewHandler(w http.ResponseWriter, r *http.Request, title string) {
+	logger.Info.Printf("Получен запрос на просмотр страницы: %v", title)
 	p, err := LoadPageFromFile(title)
 	if err != nil {
+		logger.Warn.Printf("Страница %s не найдена, перенаправление на /edit", title)
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
+	logger.Info.Printf("Страница %s успешно загружена", title)
 	renderTemplate(w, "view", p)
 }
 
 func EditHandler(w http.ResponseWriter, r *http.Request, title string) {
+	logger.Info.Printf("Получен запрос на редактирование страницы: %s", title)
+
 	p, err := LoadPageFromFile(title)
 	if err != nil {
+		logger.Warn.Printf("Страница %s не найдена, создается новая", title)
 		p = &Page{Title: title}
 	}
 	renderTemplate(w, "edit", p)
 }
 
 func SaveHandler(w http.ResponseWriter, r *http.Request, title string) {
+	logger.Info.Printf("Получен запрос на сохранение страницы: %s", title)
+
 	body := r.FormValue("body")
 	p := &Page{Title: title, Body: []byte(body)}
 	err := SavePageToFile(p)
 	if err != nil {
+		logger.Warn.Printf("Ошибка сохранения страницы %s: %v ", title, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	logger.Info.Printf("Страница %s успешно сохранена", title)
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
