@@ -1,6 +1,7 @@
 package main
 
 import (
+	"gowiki/internal/db"
 	"gowiki/internal/logger"
 	"gowiki/internal/wiki"
 	"log"
@@ -9,8 +10,9 @@ import (
 
 func main() {
 	logger.Init()
-
 	logger.Info.Println("Сервер запускается...")
+
+	db.Init()
 
 	wiki.RegisterHandlers()
 
