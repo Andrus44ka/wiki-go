@@ -4,23 +4,40 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	"log"
+	logger "gowiki/internal/logger"
+	"os"
 )
 
 var DB *sql.DB
 
 func Init() {
 	var err error
-	connStr := "user=postgres password=postgres dbname=go_wiki sslmode=disable"
-	DB, err = sql.Open("postgres", connStr)
+
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		getEnv("DB_HOST", "localhost"),
+		getEnv("DB_PORT", "5432"),
+		getEnv("DB_USER", "postgres"),
+		getEnv("DB_PASSWORD", "postgres"),
+		getEnv("DB_NAME", "go_wiki"),
+	)
+
+	DB, err = sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatalf("Ошибка при открытии соединения с БД: %v", err)
+		logger.Error.Fatalf("Ошибка при открытии соединения с БД: %v", err)
 	}
 
 	err = DB.Ping()
 	if err != nil {
-		log.Fatalf("БД не отвечает: %v", err)
+		logger.Error.Fatalf("БД не отвечает: %v", err)
 	}
 
-	fmt.Println("Успешное подключение к БД")
+	logger.Info.Println("Успешное подключение к БД")
+}
+
+func getEnv(key, fallback string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return fallback
 }

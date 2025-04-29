@@ -2,8 +2,8 @@ package main
 
 import (
 	"gowiki/internal/db"
+	handler "gowiki/internal/handler"
 	"gowiki/internal/logger"
-	"gowiki/internal/wiki"
 	"log"
 	"net/http"
 )
@@ -14,7 +14,7 @@ func main() {
 
 	db.Init()
 
-	wiki.RegisterHandlers()
+	handler.RegisterHandlers()
 
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {

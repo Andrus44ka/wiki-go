@@ -2,12 +2,15 @@ package wiki
 
 import (
 	"gowiki/internal/logger"
+	model "gowiki/internal/model"
+	service "gowiki/internal/service"
 	"html/template"
 	"net/http"
 	"regexp"
 )
 
 var validPath = regexp.MustCompile("^/(edit|save|view)/([a-zA-Z0-9]+)$")
+var pageService = service.NewPageService()
 
 func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -22,44 +25,46 @@ func makeHandler(fn func(http.ResponseWriter, *http.Request, string)) http.Handl
 
 var templates = template.Must(template.ParseFiles("web/temp/edit.html", "web/temp/view.html"))
 
-func renderTemplate(w http.ResponseWriter, tmpl string, p *Page) {
-	err := templates.ExecuteTemplate(w, tmpl+".html", p)
+func renderTemplate(w http.ResponseWriter, tmpl string, page *model.Page) {
+	err := templates.ExecuteTemplate(w, tmpl+".html", page)
 	if err != nil {
+		logger.Error.Printf("Ошибка рендера шаблона %s: %v", tmpl, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
 }
 
 func ViewHandler(w http.ResponseWriter, r *http.Request, title string) {
 	logger.Info.Printf("Получен запрос на просмотр страницы: %v", title)
-	p, err := LoadPageFromFile(title)
+	page, err := pageService.LoadPage(title)
 	if err != nil {
 		logger.Warn.Printf("Страница %s не найдена, перенаправление на /edit", title)
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
 		return
 	}
 	logger.Info.Printf("Страница %s успешно загружена", title)
-	renderTemplate(w, "view", p)
+	renderTemplate(w, "view", page)
 }
 
 func EditHandler(w http.ResponseWriter, r *http.Request, title string) {
 	logger.Info.Printf("Получен запрос на редактирование страницы: %s", title)
 
-	p, err := LoadPageFromFile(title)
+	page, err := pageService.LoadPage(title)
 	if err != nil {
 		logger.Warn.Printf("Страница %s не найдена, создается новая", title)
-		p = &Page{Title: title}
+		page = &model.Page{Title: title}
 	}
-	renderTemplate(w, "edit", p)
+	renderTemplate(w, "edit", page)
 }
 
 func SaveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	logger.Info.Printf("Получен запрос на сохранение страницы: %s", title)
 
 	body := r.FormValue("body")
-	p := &Page{Title: title, Body: []byte(body)}
-	err := SavePageToFile(p)
+	page := &model.Page{ID: 1, Title: title, Body: []byte(body)}
+	err := pageService.SavePage(page)
 	if err != nil {
-		logger.Warn.Printf("Ошибка сохранения страницы %s: %v ", title, err)
+		logger.Error.Printf("Ошибка сохранения страницы %s: %v", title, err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
