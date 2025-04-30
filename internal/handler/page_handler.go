@@ -73,8 +73,13 @@ func SaveHandler(w http.ResponseWriter, r *http.Request, title string) {
 	http.Redirect(w, r, "/view/"+title, http.StatusFound)
 }
 
+func RegistrationHandler(w http.ResponseWriter, r *http.Request) {
+	
+}
+
 func RegisterHandlers() {
 	http.HandleFunc("/view/", makeHandler(ViewHandler))
 	http.HandleFunc("/edit/", makeHandler(EditHandler))
 	http.HandleFunc("/save/", makeHandler(SaveHandler))
+	http.HandleFunc("/registration/", makeHandler(ViewHandler))
 }

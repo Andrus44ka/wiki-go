@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
-	logger "gowiki/internal/logger"
+	"gowiki/internal/logger"
 	"os"
 )
 

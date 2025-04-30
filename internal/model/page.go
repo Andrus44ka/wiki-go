@@ -1,6 +1,6 @@
 // только структура Page (бизнес-сущность)
 
-package wiki
+package model
 
 type Page struct {
 	ID    int
